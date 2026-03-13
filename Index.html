@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RAG Simulator</title>
+
+<style>
+
+body{
+font-family: Arial, Helvetica, sans-serif;
+background:#0f172a;
+color:white;
+margin:0;
+padding:0;
+}
+
+header{
+padding:20px;
+text-align:center;
+background:#1e293b;
+font-size:24px;
+font-weight:bold;
+}
+
+.container{
+max-width:1100px;
+margin:auto;
+padding:20px;
+}
+
+.section{
+background:#1e293b;
+padding:20px;
+margin-top:20px;
+border-radius:10px;
+}
+
+textarea{
+width:100%;
+height:120px;
+padding:10px;
+border-radius:8px;
+border:none;
+margin-top:10px;
+}
+
+input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:none;
+margin-top:10px;
+}
+
+button{
+background:#3b82f6;
+border:none;
+padding:10px 18px;
+margin-top:10px;
+color:white;
+border-radius:8px;
+cursor:pointer;
+}
+
+button:hover{
+background:#2563eb;
+}
+
+.chunks, .embeddings, .retrieval{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+gap:10px;
+margin-top:15px;
+}
+
+.card{
+background:#0f172a;
+padding:10px;
+border-radius:8px;
+font-size:14px;
+}
+
+.answer{
+background:#020617;
+padding:15px;
+border-radius:8px;
+margin-top:10px;
+}
+
+.step{
+font-size:14px;
+color:#94a3b8;
+margin-bottom:5px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+RAG Learning Simulator
+</header>
+
+<div class="container">
+
+<div class="section">
+<div class="step">Step 1 — Add Knowledge Document</div>
+<textarea id="documentInput">
+RAG stands for Retrieval Augmented Generation. It helps AI answer questions using external knowledge. The system first splits documents into chunks. Then it converts chunks into vectors called embeddings. When a user asks a question, the system retrieves the most relevant chunks and sends them to the language model to generate the answer.
+</textarea>
+<button onclick="chunkDocument()">Create Chunks</button>
+
+<div class="chunks" id="chunks"></div>
+</div>
+
+<div class="section">
+<div class="step">Step 2 — Create Embeddings (Vector Simulation)</div>
+<button onclick="createEmbeddings()">Generate Embeddings</button>
+<div class="embeddings" id="embeddings"></div>
+</div>
+
+<div class="section">
+<div class="step">Step 3 — Ask Question</div>
+<input id="questionInput" placeholder="Example: What does RAG do?">
+<button onclick="retrieveChunks()">Retrieve Relevant Chunks</button>
+
+<div class="retrieval" id="retrieval"></div>
+</div>
+
+<div class="section">
+<div class="step">Step 4 — Generate Answer</div>
+<button onclick="generateAnswer()">Generate Response</button>
+
+<div class="answer" id="answerBox"></div>
+</div>
+
+</div>
+
+<script>
+
+let chunks=[]
+let embeddings=[]
+
+function chunkDocument(){
+
+let text=document.getElementById("documentInput").value
+
+chunks=text.match(/[^\.!\?]+[\.!\?]+/g) || [text]
+
+let container=document.getElementById("chunks")
+container.innerHTML=""
+
+chunks.forEach((chunk,i)=>{
+
+let div=document.createElement("div")
+div.className="card"
+div.innerText="Chunk "+(i+1)+": "+chunk.trim()
+
+container.appendChild(div)
+
+})
+
+}
+
+function createEmbeddings(){
+
+embeddings=[]
+
+let container=document.getElementById("embeddings")
+container.innerHTML=""
+
+chunks.forEach((chunk,i)=>{
+
+let vector=[]
+
+for(let j=0;j<5;j++){
+vector.push(Math.random().toFixed(2))
+}
+
+embeddings.push(vector)
+
+let div=document.createElement("div")
+div.className="card"
+div.innerText="Chunk "+(i+1)+" Vector:\n["+vector.join(", ")+"]"
+
+container.appendChild(div)
+
+})
+
+}
+
+function retrieveChunks(){
+
+let question=document.getElementById("questionInput").value.toLowerCase()
+
+let container=document.getElementById("retrieval")
+container.innerHTML=""
+
+let results=[]
+
+chunks.forEach((chunk,i)=>{
+
+let score=0
+
+question.split(" ").forEach(word=>{
+if(chunk.toLowerCase().includes(word)){
+score++
+}
+})
+
+results.push({chunk:chunk,score:score})
+
+})
+
+results.sort((a,b)=>b.score-a.score)
+
+results.slice(0,2).forEach((r,i)=>{
+
+let div=document.createElement("div")
+div.className="card"
+div.innerText="Relevant Chunk:\n"+r.chunk
+
+container.appendChild(div)
+
+})
+
+window.retrievedChunks=results.slice(0,2)
+
+}
+
+function generateAnswer(){
+
+let box=document.getElementById("answerBox")
+
+if(!window.retrievedChunks){
+box.innerText="Please retrieve chunks first."
+return
+}
+
+let context=window.retrievedChunks.map(r=>r.chunk).join(" ")
+
+box.innerText="Generated Answer (Simulation):\n\nBased on retrieved knowledge: "+context
+
+}
+
+</script>
+
+</body>
+</html>
