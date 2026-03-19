@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RAG Simulator</title>
+
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: #0f172a;
+    color: #fff;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .card {
+    background: #1e293b;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  h3 {
+    margin-top: 0;
+    color: #38bdf8;
+  }
+
+  textarea, input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 10px;
+    background: #334155;
+    color: white;
+  }
+
+  button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #3b82f6;
+    color: white;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #2563eb;
+  }
+
+  .output {
+    margin-top: 10px;
+    background: #020617;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #94a3b8;
+    white-space: pre-wrap;
+  }
+
+  .flow {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #94a3b8;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🧠 RAG Simulator</h1>
+
+  <div class="flow">
+    Data → Chunking → Embeddings → Retrieval → Generation
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <h3>1. Enter Data</h3>
+    <textarea id="data" rows="4" placeholder="Paste knowledge base..."></textarea>
+    <button onclick="chunkData()">Chunk Data</button>
+    <div id="chunks" class="output"></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <h3>2. Create Embeddings</h3>
+    <button onclick="createEmbeddings()">Generate Embeddings</button>
+    <div id="embeddings" class="output"></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card">
+    <h3>3. Ask a Question</h3>
+    <input id="query" placeholder="Ask something..." />
+    <button onclick="retrieveChunks()">Retrieve Relevant Chunks</button>
+    <div id="retrieved" class="output"></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card">
+    <h3>4. Generate Answer</h3>
+    <button onclick="generateAnswer()">Generate Response</button>
+    <div id="answer" class="output"></div>
+  </div>
+
+</div>
+
+<script>
+let chunks = [];
+let embeddings = [];
+let retrieved = [];
+
+// STEP 1: Chunking
+function chunkData() {
+  const text = document.getElementById("data").value;
+  chunks = text.split(".").map(c => c.trim()).filter(c => c);
+
+  document.getElementById("chunks").innerText =
+    "Chunks:\\n" + JSON.stringify(chunks, null, 2);
+}
+
+// Fake embedding (length-based)
+function fakeEmbedding(text) {
+  return text.split(" ").length;
+}
+
+// STEP 2: Embeddings
+function createEmbeddings() {
+  embeddings = chunks.map(chunk => ({
+    text: chunk,
+    vector: fakeEmbedding(chunk)
+  }));
+
+  document.getElementById("embeddings").innerText =
+    "Embeddings:\\n" + JSON.stringify(embeddings, null, 2);
+}
+
+// STEP 3: Retrieval
+function retrieveChunks() {
+  const query = document.getElementById("query").value;
+  const qVec = fakeEmbedding(query);
+
+  retrieved = embeddings
+    .map(e => ({
+      ...e,
+      score: Math.abs(e.vector - qVec)
+    }))
+    .sort((a, b) => a.score - b.score)
+    .slice(0, 2);
+
+  document.getElementById("retrieved").innerText =
+    "Top Matches:\\n" + JSON.stringify(retrieved, null, 2);
+}
+
+// STEP 4: Generation
+function generateAnswer() {
+  const query = document.getElementById("query").value;
+  const context = retrieved.map(r => r.text).join(" ");
+
+  const answer =
+    "Context Used:\\n" + context +
+    "\\n\\nFinal Answer:\\n" +
+    "Based on the retrieved information, " + query;
+
+  document.getElementById("answer").innerText = answer;
+}
+</script>
+
+</body>
+</html>
